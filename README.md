@@ -17,17 +17,49 @@ Replace this paragraph with your own summary of what your version does.
 
 ## How The System Works
 
-Explain your design in plain language.
+Real-world platforms often blend collaborative filtering (learning from many users' behavior) with content-based signals (using song attributes). My version focuses on content-based matching: every song gets a score based on how closely it matches a user's profile. Exact matches for categorical features add points, and numeric features earn more points the closer they are to the user's targets. After scoring all songs, I rank them and return the top K results.
 
-Some prompts to answer:
+**Song features used**
+- `genre`
+- `mood`
+- `energy`
+- `tempo_bpm`
+- `valence`
+- `danceability`
+- `acousticness`
 
-- What features does each `Song` use in your system
-  - For example: genre, mood, energy, tempo
-- What information does your `UserProfile` store
-- How does your `Recommender` compute a score for each song
-- How do you choose which songs to recommend
+**UserProfile features used**
+- `genre`
+- `mood`
+- `energy`
+- `tempo_bpm`
+- `valence`
+- `danceability`
+- `acousticness`
 
-You can include a simple diagram or bullet list if helpful.
+**Algorithm Recipe (Scoring Rule + Ranking Rule)**
+- +1.0 point for a `genre` match.
+- +1.0 point for a `mood` match.
+- Numeric similarity points use closeness to the user's target with these weights.
+- `energy` weight 2.0
+- `valence` weight 0.8
+- `danceability` weight 0.6
+- `tempo_bpm` weight 0.5
+- `acousticness` weight 0.4
+- Ranking rule: sort by total score (highest to lowest) and return the top K songs.
+
+**Potential Biases**
+- This system may over-prioritize `genre`, which could hide songs that match the user's mood or vibe well but fall outside their favorite genre.
+
+```mermaid
+flowchart TD
+  A["Input: User Preferences"] --> B["Load Songs (CSV)"]
+  B --> C["Loop Through Songs"]
+  C --> D["Score One Song (Rule-Based)"]
+  D --> E["Collect (Song, Score, Explanation)"]
+  E --> F["Rank by Score"]
+  F --> G["Output: Top K Recommendations"]
+```
 
 ---
 
@@ -208,4 +240,3 @@ A few sentences about what you learned:
 - What surprised you about how your system behaved
 - How did building this change how you think about real music recommenders
 - Where do you think human judgment still matters, even if the model seems "smart"
-

@@ -1,111 +1,82 @@
 # 🎧 Model Card: Music Recommender Simulation
 
-## 1. Model Name  
+## 1. Model Name
 
-Give your model a short, descriptive name.  
-Example: **VibeFinder 1.0**  
-
----
-
-## 2. Intended Use  
-
-Describe what your recommender is designed to do and who it is for. 
-
-Prompts:  
-
-- What kind of recommendations does it generate  
-- What assumptions does it make about the user  
-- Is this for real users or classroom exploration  
+VibeMatch Mini 1.0
 
 ---
 
-## 3. How the Model Works  
+## 2. Intended Use
 
-Explain your scoring approach in simple language.  
-
-Prompts:  
-
-- What features of each song are used (genre, energy, mood, etc.)  
-- What user preferences are considered  
-- How does the model turn those into a score  
-- What changes did you make from the starter logic  
-
-Avoid code here. Pretend you are explaining the idea to a friend who does not program.
+This model suggests 5 songs from a small class dataset.  
+It assumes a single user has clear preferences for genre, mood, and vibe numbers.  
+It is for classroom exploration, not real users.
 
 ---
 
-## 4. Data  
+## 3. Goal / Task
 
-Describe the dataset the model uses.  
-
-Prompts:  
-
-- How many songs are in the catalog  
-- What genres or moods are represented  
-- Did you add or remove data  
-- Are there parts of musical taste missing in the dataset  
+The goal is to predict which songs a user might like next.  
+It does this by matching a user profile to song features.  
+It is a simple content-based recommender.
 
 ---
 
-## 5. Strengths  
+## 4. Data Used
 
-Where does your system seem to work well  
-
-Prompts:  
-
-- User types for which it gives reasonable results  
-- Any patterns you think your scoring captures correctly  
-- Cases where the recommendations matched your intuition  
+The dataset has 18 songs in `data/songs.csv`.  
+Each song has genre, mood, energy, tempo, valence, danceability, and acousticness.  
+I added extra genres like metal, classical, hip hop, and indie folk.  
+The dataset is small and does not cover all tastes.
 
 ---
 
-## 6. Limitations and Bias 
+## 5. Algorithm Summary
 
-Where the system struggles or behaves unfairly. 
-
-Prompts:  
-
-- Features it does not consider  
-- Genres or moods that are underrepresented  
-- Cases where the system overfits to one preference  
-- Ways the scoring might unintentionally favor some users  
+The model gives points for exact matches in genre and mood.  
+It adds more points when numeric features are close to the user's targets.  
+Energy has the strongest weight, so high-energy matches rise quickly.  
+Songs are sorted by total score and the top K are returned.
 
 ---
 
-## 7. Evaluation  
+## 6. Observed Behavior / Biases
 
-How you checked whether the recommender behaved as expected. 
-
-Prompts:  
-
-- Which user profiles you tested  
-- What you looked for in the recommendations  
-- What surprised you  
-- Any simple tests or comparisons you ran  
-
-No need for numeric metrics unless you created some.
+High-energy songs often win even if mood does not match.  
+Smaller genres can lose out because there are fewer examples.  
+The scoring treats each feature separately, so mixed feelings (high energy but sad) can look odd.  
+This can create a mild filter bubble around the strongest feature.
 
 ---
 
-## 8. Future Work  
+## 7. Evaluation Process
 
-Ideas for how you would improve the model next.  
-
-Prompts:  
-
-- Additional features or preferences  
-- Better ways to explain recommendations  
-- Improving diversity among the top results  
-- Handling more complex user tastes  
+I tested four profiles: High-Energy Pop, Chill Lofi, Deep Intense Rock, and Conflicting High-Energy Sad.  
+I checked the top five songs and read the reasons for each score.  
+I ran an experiment that doubled the energy weight and halved the genre points.  
+The results became even more energy-heavy, which showed the model is sensitive to weights.
 
 ---
 
-## 9. Personal Reflection  
+## 8. Intended Use and Non-Intended Use
 
-A few sentences about your experience.  
+Intended use: classroom demos and learning how scoring works.  
+Non-intended use: real music recommendations, user profiling, or any high-stakes decisions.  
+The dataset and logic are too small and too simple for real use.
 
-Prompts:  
+---
 
-- What you learned about recommender systems  
-- Something unexpected or interesting you discovered  
-- How this changed the way you think about music recommendation apps  
+## 9. Ideas for Improvement
+
+Add more songs and balance genres and moods.  
+Add a diversity rule so the top results are not all the same style.  
+Use a better distance function for tempo and mood together.
+
+---
+
+## 10. Personal Reflection
+
+My biggest learning moment was seeing how weight choices can change everything.  
+AI tools helped me draft profiles and reason about scoring, but I still had to verify the math.  
+It surprised me how a simple score can still feel like a real recommendation.  
+Next I would try a hybrid method that mixes user behavior with these song features.
