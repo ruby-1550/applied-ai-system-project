@@ -1,5 +1,5 @@
 """
-Command line runner for the Music Recommender Simulation.
+Command line runner for the Music Recommender Simulation and VibeCraft.
 
 This file helps you quickly run and test your recommender.
 
@@ -9,14 +9,42 @@ You will implement the functions in recommender.py:
 - recommend_songs
 """
 
+import argparse
+import json
+
 try:
     from .recommender import load_songs, recommend_songs
+    from .catalog import load_catalog
+    from .vibecraft import build_playlist
 except ImportError:  # Allows running as a script: `python src/main.py`
     from recommender import load_songs, recommend_songs
+    from catalog import load_catalog
+    from vibecraft import build_playlist
 
 
 def main() -> None:
-    songs = load_songs("data/songs.csv") 
+    parser = argparse.ArgumentParser(description="Music recommender + VibeCraft playlist builder")
+    parser.add_argument("--query", type=str, default="", help="Natural language playlist request (VibeCraft)")
+    parser.add_argument("--k", type=int, default=0, help="Playlist size override")
+    parser.add_argument("--debug", action="store_true", help="Print debug JSON for VibeCraft")
+    args = parser.parse_args()
+
+    if args.query.strip():
+        catalog = load_catalog("data/songs.csv")
+        q = args.query.strip()
+        if args.k and args.k > 0:
+            q = f"{q} {args.k} songs"
+        result = build_playlist(q, catalog)
+        for item in result.items:
+            s = item.song
+            print(f"{s.title} — {s.artist} ({s.genre}, {s.mood}) | score={item.score:.2f}")
+            print(f"  because: {item.explanation}")
+        if args.debug:
+            print("\nDEBUG:")
+            print(json.dumps(result.debug, indent=2))
+        return
+
+    songs = load_songs("data/songs.csv")
 
     profiles = {
         "High-Energy Pop": {

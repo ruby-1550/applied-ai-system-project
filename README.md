@@ -1,242 +1,105 @@
-# 🎵 Music Recommender Simulation
+# VibeCraft: Agentic Playlist Builder (Applied AI System)
 
-## Project Summary
+## Links
 
-In this project you will build and explain a small music recommender system.
+- Code (GitHub): https://github.com/ruby-1550/applied-ai-system-project
+- Demo: https://youtu.be/Wc9yYRMbnpQ
 
-Your goal is to:
+## Original project (Modules 1–3)
 
-- Represent songs and a user "taste profile" as data
-- Design a scoring rule that turns that data into recommendations
-- Evaluate what your system gets right and wrong
-- Reflect on how this mirrors real world AI recommenders
+This repo started as my **Music Recommender Simulation**: a transparent, rule-based content recommender that scores songs from `data/songs.csv` against a user taste profile (genre, mood, and numeric “vibe” features), then ranks and returns the top‑K.
 
-Replace this paragraph with your own summary of what your version does.
+## What I built for the final project
 
----
+**VibeCraft** extends that prototype into an end‑to‑end applied AI system that:
+- Takes a **natural‑language request** (ex: “chill lofi for studying, avoid pop”)
+- Uses **retrieval** (TF‑IDF over song metadata) to narrow to relevant candidates
+- Runs an **agentic workflow** (plan → retrieve → score/diversify → self‑check) to generate a playlist with explanations
+- Includes **reliability testing** (unit tests + an evaluation harness with predefined scenarios)
 
-## How The System Works
+## Architecture
 
-Real-world platforms often blend collaborative filtering (learning from many users' behavior) with content-based signals (using song attributes). My version focuses on content-based matching: every song gets a score based on how closely it matches a user's profile. Exact matches for categorical features add points, and numeric features earn more points the closer they are to the user's targets. After scoring all songs, I rank them and return the top K results.
+![VibeCraft architecture](assets/architecture.png)
 
-**Song features used**
-- `genre`
-- `mood`
-- `energy`
-- `tempo_bpm`
-- `valence`
-- `danceability`
-- `acousticness`
+Key modules:
+- `src/retrieval.py`: TF‑IDF retrieval (no external vector DB)
+- `src/vibecraft.py`: agent loop + logging + guardrails
+- `src/eval_harness.py`: reliability checks on predefined cases
+- `src/streamlit_app.py`: small UI for demoing outputs and the debug trace
 
-**UserProfile features used**
-- `genre`
-- `mood`
-- `energy`
-- `tempo_bpm`
-- `valence`
-- `danceability`
-- `acousticness`
-
-**Algorithm Recipe (Scoring Rule + Ranking Rule)**
-- +1.0 point for a `genre` match.
-- +1.0 point for a `mood` match.
-- Numeric similarity points use closeness to the user's target with these weights.
-- `energy` weight 2.0
-- `valence` weight 0.8
-- `danceability` weight 0.6
-- `tempo_bpm` weight 0.5
-- `acousticness` weight 0.4
-- Ranking rule: sort by total score (highest to lowest) and return the top K songs.
-
-**Potential Biases**
-- This system may over-prioritize `genre`, which could hide songs that match the user's mood or vibe well but fall outside their favorite genre.
-
-```mermaid
-flowchart TD
-  A["Input: User Preferences"] --> B["Load Songs (CSV)"]
-  B --> C["Loop Through Songs"]
-  C --> D["Score One Song (Rule-Based)"]
-  D --> E["Collect (Song, Score, Explanation)"]
-  E --> F["Rank by Score"]
-  F --> G["Output: Top K Recommendations"]
-```
-
----
-
-## Getting Started
-
-### Setup
-
-1. Create a virtual environment (optional but recommended):
-
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate      # Mac or Linux
-   .venv\Scripts\activate         # Windows
-
-2. Install dependencies
+## Setup
 
 ```bash
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-3. Run the app:
+## Run (CLI)
 
+Original project behavior:
 ```bash
-python -m src.main
+python3 -m src.main
 ```
 
-### Running Tests
-
-Run the starter tests with:
-
+VibeCraft (natural language):
 ```bash
-pytest
+python3 -m src.main --query "chill lofi for studying, avoid pop" --k 8 --debug
 ```
 
-You can add more tests in `tests/test_recommender.py`.
+## Run (Streamlit)
 
----
+```bash
+streamlit run src/streamlit_app.py
+```
 
-## Experiments You Tried
+## Sample interactions
 
-Use this section to document the experiments you ran. For example:
+Input:
+- `chill lofi for studying, avoid pop`
 
-- What happened when you changed the weight on genre from 2.0 to 0.5
-- What happened when you added tempo or valence to the score
-- How did your system behave for different types of users
+Output (example):
+- A playlist of 8 tracks with per‑track explanations (feature matches + similarity + diversity constraints)
 
----
+Input:
+- `uplifting workout music 10 songs`
 
-## Limitations and Risks
+Output (example):
+- Higher‑energy, higher‑tempo tracks with explanations showing why each track scored well
 
-Summarize some limitations of your recommender.
+## Reliability / testing summary
 
-Examples:
+Unit tests:
+```bash
+python3 -m pytest -q
+```
 
-- It only works on a tiny catalog
-- It does not understand lyrics or language
-- It might over favor one genre or mood
+Evaluation harness:
+```bash
+python3 -m src.run_eval
+```
 
-You will go deeper on this in your model card.
+Current status (April 28, 2026):
+- `4/4` unit tests passing
+- `2/2` evaluation cases passing (playlist size, avoid‑genre constraint, basic diversity checks)
 
----
+## Design decisions (trade‑offs)
 
-## Reflection
+- **No external LLM required:** the “AI” behavior is retrieval + structured scoring + an explicit self‑check loop, so outputs are inspectable and reproducible.
+- **Transparent explanations:** every recommendation includes a short, human‑readable reason string rather than hidden embeddings‑only decisions.
+- **Guardrails:** simple constraint parsing (ex: “avoid pop”) + diversity caps to reduce single‑genre collapse.
 
-Read and complete `model_card.md`:
+## Limitations, misuse, and ethics
 
-[**Model Card**](model_card.md)
+- **Not a real recommender:** tiny catalog, no user listening history, and no personalization beyond the prompt.
+- **Bias risks:** if the dataset under‑represents genres/moods, retrieval and scoring will mirror that imbalance.
+- **Misuse:** this could be misrepresented as “Spotify‑like” personalization; I prevent that by documenting intended/non‑intended use in `model_card.md`.
 
-Write 1 to 2 paragraphs here about what you learned:
+## Reflection (what I learned)
 
-- about how recommenders turn data into predictions
-- about where bias or unfairness could show up in systems like this
+- Retrieval made natural-language requests feel “smarter” without adding a black‑box model.
+- Reliability checks caught obvious failures early (like constraint violations), which made iteration faster and safer.
 
-
----
-
-## 7. `model_card_template.md`
-
-Combines reflection and model card framing from the Module 3 guidance. :contentReference[oaicite:2]{index=2}  
-
-```markdown
-# 🎧 Model Card - Music Recommender Simulation
-
-## 1. Model Name
-
-Give your recommender a name, for example:
-
-> VibeFinder 1.0
-
----
-
-## 2. Intended Use
-
-- What is this system trying to do
-- Who is it for
-
-Example:
-
-> This model suggests 3 to 5 songs from a small catalog based on a user's preferred genre, mood, and energy level. It is for classroom exploration only, not for real users.
-
----
-
-## 3. How It Works (Short Explanation)
-
-Describe your scoring logic in plain language.
-
-- What features of each song does it consider
-- What information about the user does it use
-- How does it turn those into a number
-
-Try to avoid code in this section, treat it like an explanation to a non programmer.
-
----
-
-## 4. Data
-
-Describe your dataset.
-
-- How many songs are in `data/songs.csv`
-- Did you add or remove any songs
-- What kinds of genres or moods are represented
-- Whose taste does this data mostly reflect
-
----
-
-## 5. Strengths
-
-Where does your recommender work well
-
-You can think about:
-- Situations where the top results "felt right"
-- Particular user profiles it served well
-- Simplicity or transparency benefits
-
----
-
-## 6. Limitations and Bias
-
-Where does your recommender struggle
-
-Some prompts:
-- Does it ignore some genres or moods
-- Does it treat all users as if they have the same taste shape
-- Is it biased toward high energy or one genre by default
-- How could this be unfair if used in a real product
-
----
-
-## 7. Evaluation
-
-How did you check your system
-
-Examples:
-- You tried multiple user profiles and wrote down whether the results matched your expectations
-- You compared your simulation to what a real app like Spotify or YouTube tends to recommend
-- You wrote tests for your scoring logic
-
-You do not need a numeric metric, but if you used one, explain what it measures.
-
----
-
-## 8. Future Work
-
-If you had more time, how would you improve this recommender
-
-Examples:
-
-- Add support for multiple users and "group vibe" recommendations
-- Balance diversity of songs instead of always picking the closest match
-- Use more features, like tempo ranges or lyric themes
-
----
-
-## 9. Personal Reflection
-
-A few sentences about what you learned:
-
-- What surprised you about how your system behaved
-- How did building this change how you think about real music recommenders
-- Where do you think human judgment still matters, even if the model seems "smart"
+See also:
+- `model_card.md` (intended use, limitations, evaluation)
+- `reflection.md` (what worked, what surprised me, and what I’d improve)

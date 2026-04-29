@@ -1,82 +1,54 @@
-# 🎧 Model Card: Music Recommender Simulation
+# 🎧 Model Card: VibeCraft Playlist Builder
 
-## 1. Model Name
+## 1. System name
 
-VibeMatch Mini 1.0
+VibeCraft 1.0 (class project)
 
----
+## 2. Intended use
 
-## 2. Intended Use
+VibeCraft generates a short playlist from a **tiny, local catalog** of songs for:
+- classroom demos of retrieval + scoring + agentic self-checks
+- learning about reliability testing and guardrails in AI-like systems
 
-This model suggests 5 songs from a small class dataset.  
-It assumes a single user has clear preferences for genre, mood, and vibe numbers.  
-It is for classroom exploration, not real users.
+## 3. Non-intended use
 
----
+Not intended for:
+- real user music personalization
+- making claims about a person’s identity, traits, or preferences
+- any high-stakes setting
 
-## 3. Goal / Task
+## 4. How it works (high level)
 
-The goal is to predict which songs a user might like next.  
-It does this by matching a user profile to song features.  
-It is a simple content-based recommender.
+1) **Parse request:** extract simple constraints (ex: “avoid pop”, playlist size).  
+2) **Retrieve candidates:** TF‑IDF similarity over metadata text (title/artist/genre/mood).  
+3) **Score + diversify:** apply a transparent scoring function over numeric song features and add a diversity cap.  
+4) **Self-check + trace:** verify constraints and emit a debug trace + logs.
 
----
+## 5. Data
 
-## 4. Data Used
+Catalog: `data/songs.csv` (18 songs).  
+Fields: genre, mood, energy, tempo, valence, danceability, acousticness.
 
-The dataset has 18 songs in `data/songs.csv`.  
-Each song has genre, mood, energy, tempo, valence, danceability, and acousticness.  
-I added extra genres like metal, classical, hip hop, and indie folk.  
-The dataset is small and does not cover all tastes.
+## 6. Known limitations and risks
 
----
+- Small dataset means recommendations can feel repetitive or miss niche requests.
+- Retrieval and scoring can reinforce dataset imbalances (genre/mood coverage).
+- Natural language parsing is rule-based and can misunderstand nuanced phrasing.
 
-## 5. Algorithm Summary
+## 7. Evaluation
 
-The model gives points for exact matches in genre and mood.  
-It adds more points when numeric features are close to the user's targets.  
-Energy has the strongest weight, so high-energy matches rise quickly.  
-Songs are sorted by total score and the top K are returned.
+Reliability checks included:
+- unit tests (core behaviors, avoid-genre constraint, basic diversity)
+- a small evaluation harness with predefined scenarios (`src/eval_harness.py`)
 
----
+## 8. Guardrails and transparency
 
-## 6. Observed Behavior / Biases
+- Explanations include the top scoring reasons (“feature closeness” + categorical matches).
+- Debug trace exposes inferred preferences, retrieval top hits, and picked genres.
 
-High-energy songs often win even if mood does not match.  
-Smaller genres can lose out because there are fewer examples.  
-The scoring treats each feature separately, so mixed feelings (high energy but sad) can look odd.  
-This can create a mild filter bubble around the strongest feature.
+## 9. Future work
 
----
+- Improve the parser (richer constraint language, negation, numeric ranges).
+- Add more songs and measure how retrieval quality changes with catalog size.
+- Add stronger evaluation metrics (constraint satisfaction rate across many cases).
 
-## 7. Evaluation Process
-
-I tested four profiles: High-Energy Pop, Chill Lofi, Deep Intense Rock, and Conflicting High-Energy Sad.  
-I checked the top five songs and read the reasons for each score.  
-I ran an experiment that doubled the energy weight and halved the genre points.  
-The results became even more energy-heavy, which showed the model is sensitive to weights.
-
----
-
-## 8. Intended Use and Non-Intended Use
-
-Intended use: classroom demos and learning how scoring works.  
-Non-intended use: real music recommendations, user profiling, or any high-stakes decisions.  
-The dataset and logic are too small and too simple for real use.
-
----
-
-## 9. Ideas for Improvement
-
-Add more songs and balance genres and moods.  
-Add a diversity rule so the top results are not all the same style.  
-Use a better distance function for tempo and mood together.
-
----
-
-## 10. Personal Reflection
-
-My biggest learning moment was seeing how weight choices can change everything.  
-AI tools helped me draft profiles and reason about scoring, but I still had to verify the math.  
-It surprised me how a simple score can still feel like a real recommendation.  
-Next I would try a hybrid method that mixes user behavior with these song features.
